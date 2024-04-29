@@ -36,9 +36,9 @@ wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
 wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz 
 ```
 
-### prepare CIFAR10, CIFAR100, TinyImageNet
+### Prepare CIFAR10, CIFAR100, TinyImageNet as dataset dir
 
-Move your data dir of cifar10, cifar100, tinyimagenet to ./data/cifar10, ./data/cifar100, ./data/tinyimagenet, respectively. Their dir should include a train dir and a test dir.
+Move your data of cifar10, cifar100, tinyimagenet to './data/cifar10', './data/cifar100', './data/tinyimagenet', respectively. Their dir should include a 'train' dir and a 'test' dir.
 
 ### To implement and evaluate our proposed framework:
 ```bash
