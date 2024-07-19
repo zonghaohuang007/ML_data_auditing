@@ -1,6 +1,7 @@
-# A General Framework for Data-Use Auditing of ML Models
+# This is official code repo for ``A General Framework for Data-Use Auditing of ML Models'', which is accepted to CCS 2024
 
 ### Environment
+(Please feel free to reach out if you find any missing package in the below list)
 ```
 python==3.9.15
 datasets==2.16.1

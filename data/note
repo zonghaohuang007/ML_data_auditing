@@ -1,7 +1,0 @@
-your raw cifar10, cifar100, tinyimagenet dataset should be here:
-
-'./data/cifar10' dir should include a subdir of 'train' and a 'test', each includes 10 dirs of images;
-
-'./data/cifar100' dir should include a subdir of 'train' and a 'test', each includes 100 dirs of images;
-
-'./data/tinyimagenet' dir should include a subdir of 'train' and a 'test', each includes 200 dirs of images;
