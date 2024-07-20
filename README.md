@@ -17,7 +17,7 @@ torchvision==0.16.2
 transformers==4.35.2
 ```
 
-### To download CIFAR10, CIFAR100, TinyImageNet dataset
+### To download CIFAR10, CIFAR100, TinyImageNet datasets
 
 ```
 wget http://cs231n.stanford.edu/tiny-imagenet-200.zip
@@ -27,22 +27,22 @@ wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz
 
 ### Prepare raw CIFAR10, CIFAR100, TinyImageNet
 
-To prepare CIFAR10 and export it as a dataset dir in './experiments/data/cifar10', please run:
+Export CIFAR10 as a dataset dir in './experiments/data/cifar10':
 ```
 python3 ./experiments/export_raw_data.py --dataset 'CIFAR10' --data_path <path where cifar-10-python.tar.gz is downloaded and unzipped> --saved_path './experiments/data/cifar10'
 ```
 
-To prepare CIFAR100 and export it as a dataset dir in './experiments/data/cifar100', please run:
+Export CIFAR100 as a dataset dir in './experiments/data/cifar100':
 ```
 python3 ./experiments/export_raw_data.py --dataset 'CIFAR100' --data_path <path where cifar-100-python.tar.gz is downloaded and unzipped> --saved_path './experiments/data/cifar100'
 ```
 
-To prepare TinyImageNet and export it as a dataset dir in './experiments/data/tinyimagenet', please run:
+Export TinyImageNet as a dataset dir in './experiments/data/tinyimagenet':
 ```
 python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <path where tiny-imagenet-200.zip is downloaded and unzipped> --saved_path './experiments/data/tinyimagenet'
 ```
 
-### To implement and evaluate our proposed framework:
+### To reproduce the main experimental results of our proposed framework in the paper:
 ```
-bash run.sh
+bash ./experiments/run.sh
 ```
