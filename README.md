@@ -1,4 +1,4 @@
-# This is official code repo for the CCS 2024 paper: ``A General Framework for Data-Use Auditing of ML Models''
+## This is official code repo for the CCS 2024 paper: ``A General Framework for Data-Use Auditing of ML Models''
 
 ### Environment
 (Please feel free to reach out if you find any missing package in the below list)
@@ -25,7 +25,7 @@ wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
 wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz 
 ```
 
-### Prepare raw CIFAR10, CIFAR100, TinyImageNet
+### To prepare raw CIFAR10, CIFAR100, TinyImageNet
 
 Export CIFAR10 as a dataset dir in './experiments/data/cifar10':
 ```
@@ -43,6 +43,20 @@ python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <p
 ```
 
 ### To reproduce the main experimental results of our proposed framework in the paper:
+(In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
 ```
 bash ./experiments/run.sh
 ```
+
+
+If you have any question on our work or this repo, please feel free to email the author.
+
+
+If you find this git repo is helpful for your research, please consider to cite:
+```
+@inproceedings{huang2024:auditdata,
+  title={A general framework for data-use auditing of ML models},
+  author={Huang, Z. and Gong, N. Z. and Reiter M. K.},
+  booktitle={31\textsuperscript{st}} ACM Conference on Computer and Communications Security,
+  year={2024}
+}

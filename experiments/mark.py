@@ -39,7 +39,7 @@ def project_linf(x, y, radius, image_mean, image_std):
     return y + delta
 
 
-def generate_exclusive_twins2(image, args):
+def generate_mark_data(image, args):
 
     model = resnet18(pretrained=True)
     model.cuda()
@@ -57,7 +57,6 @@ def generate_exclusive_twins2(image, args):
     # marking
     img_orig = [transform(image).unsqueeze(0)]
     img = [x.clone() for x in img_orig]
-    img2 = [x.clone() for x in img_orig]
     peturbation = [torch.randn_like(x) * args.radius / 255 / torch.mean(image_std) for x in img_orig]
 
     for k in range(len(peturbation)):
@@ -66,8 +65,6 @@ def generate_exclusive_twins2(image, args):
     moptimizer, schedule = get_optimizer(peturbation, args.moptimizer)
     if schedule is not None:
         schedule = repeat_to(schedule, args.mepochs)
-
-    # moptimizer = torch.optim.Adam(peturbation, lr=1.0, weight_decay=0)
 
     img_center = torch.cat([x.cuda(non_blocking=True) for x in img_orig], dim=0)
     ft_orig = model(data_augmentation(img_center)).detach()

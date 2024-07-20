@@ -11,6 +11,7 @@ from torch.optim.lr_scheduler import LambdaLR
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from torchvision.datasets import CIFAR10
+from torchvision.models import resnet18, resnet34, resnet50
 from torchvision import transforms
 import torchvision
 
@@ -23,7 +24,7 @@ import shutil
 import math
 from sklearn.metrics.pairwise import cosine_similarity
 from src.datasets.folder import default_loader
-from mark import generate_exclusive_twins2
+from mark import generate_mark_data
 
 
 logger = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ def generate_twins_data(args):
             image = Image.open(args.img_path + i + '/' + file_list1[j])
 
             if file_list1[j] in file_list2:
-                image1, image2 = generate_exclusive_twins2(image, args)
+                image1, image2 = generate_mark_data(image, args)
                 if random.choice([True,False]):
                     image1.save(args.published_path + '/' + i + '/' + file_list1[j])
                     image2.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
@@ -272,7 +273,7 @@ def finetune(args):
     test_transform = transforms.Compose([transforms.ToTensor(),
                                          transforms.Normalize(mean=args.image_mean, std=args.image_std)])
 
-    train_set = torchvision.datasets.ImageFolder(root='./data/cifar10/train/', transform=train_transform)
+    train_set = torchvision.datasets.ImageFolder(root='./experiments/data/cifar10/train/', transform=train_transform)
     sample = random.sample(range(len(train_set)), int(0.1 * len(train_set)))
     train_set = forest.data.datasets.Subset(train_set, sample)
 
@@ -285,7 +286,7 @@ def finetune(args):
         drop_last=True
     )
 
-    test_set = torchvision.datasets.ImageFolder(root='./data/cifar10/test/', transform=test_transform)
+    test_set = torchvision.datasets.ImageFolder(root='./experiments/data/cifar10/test/', transform=test_transform)
     test_loader = torch.utils.data.DataLoader(
         test_set,
         batch_size=args.batch_size,
@@ -296,7 +297,7 @@ def finetune(args):
     # Prepare model
     base_encoder = eval(args.backbone)
     pre_model = SimCLR(base_encoder, projection_dim=args.projection_dim).cuda()
-    pre_model.load_state_dict(torch.load(args.published_path + 'simclr_model_resnet18({}).pth'.format(args.num_epoch)))
+    pre_model.load_state_dict(torch.load(args.published_path + 'simclr_model_resnet18(1000).pth'))
     model = LinModel(pre_model.enc, feature_dim=pre_model.feature_dim, n_classes=len(train_set.targets))
     model = model.cuda()
 
@@ -337,18 +338,15 @@ def get_parser():
     parser = argparse.ArgumentParser()
 
     # main parameters
-    parser.add_argument('--img_path', type=str, default='./data/cifar10/train/')
-    parser.add_argument('--published_path', type=str, default='./data/cifar10/')
-    parser.add_argument('--unpublished_path', type=str, default='./data/cifar10/')
-    parser.add_argument('--mark_budget', default=0.1, type=float)
-    parser.add_argument("--radius", type=int, default=10)
+    parser.add_argument('--img_path', type=str, default='./experiments/data/cifar10/train/')
+    parser.add_argument('--published_path', type=str, default='./experiments/data/cifar10/')
+    parser.add_argument('--unpublished_path', type=str, default='./experiments/data/cifar10/')
     parser.add_argument("--mepochs", type=int, default=90)
     parser.add_argument("--lambda_ft_l2", type=float, default=0.01)
     parser.add_argument("--lambda_l2_img", type=float, default=0.0005)
     parser.add_argument("--moptimizer", type=str, default="sgd,lr=1.0")
 
     parser.add_argument("--epochs", type=int, default=1000)
-    parser.add_argument('--train_path', type=str, default='./data/cifar10/')
     parser.add_argument("--backbone", type=str, default='resnet18')
     parser.add_argument('--projection_dim', type=int, default=128)
     parser.add_argument('--workers', type=int, default=16)
@@ -358,14 +356,18 @@ def get_parser():
     parser.add_argument('--learning_rate', type=float, default=0.6)
     parser.add_argument('--momentum', type=float, default=0.9)
 
-    parser.add_argument("--exp_index", default=0, type=int)
+    parser.add_argument('--mark_budget', default=0.1, type=float, help='ratio of marked data or percentage of training data contributed from a data owner')
+    parser.add_argument("--radius", type=int, default=10, help='epsilon: utility bound')
+    parser.add_argument("--K", type=int, default=64, help='K: number of perturbations per sample in detection')
+    parser.add_argument("--p", type=float, default=0.05, help='p: upper bound on false-detection rate')
+    parser.add_argument("--num_experiments", type=int, default=20, help='number of experiments to run')
 
     return parser
 
 
 def train(args):
 
-    args.train_path = args.train_path + 'published({})/'.format(args.exp_index)
+    args.train_path = args.published_path
 
     assert torch.cuda.is_available()
     cudnn.benchmark = True
@@ -458,7 +460,7 @@ def find_tau(p, N):
 def detection(transform, sample_list, args):
 
     # target model
-    ckpt = torch.load(args.published_path + 'simclr_model_resnet18({}).pth'.format(args.num_epoch))
+    ckpt = torch.load(args.published_path + 'simclr_model_resnet18(1000).pth')
     assert args.backbone in ['resnet18', 'resnet34']
     base_encoder = eval(args.backbone)
     target_model = SimCLR(base_encoder, projection_dim=args.projection_dim).cuda()
@@ -477,15 +479,15 @@ def detection(transform, sample_list, args):
     cost = len(sample_list)
     detected = False
     acc = 0
-    alpha1 = 0.025
-    alpha2 = 0.025
+    alpha1 = args.p / 2
+    alpha2 = args.p / 2
     tau =  find_tau(alpha2, len(sample_list))
     for j in range(len(sample_list)):
         
         fv1_set = []
         fv2_set = []
 
-        for _ in range(int(args.inference_mode)):
+        for _ in range(args.K):
             with torch.no_grad():
                 img1 = augmentation(torch.Tensor(member_img_list[sample_list[j][0]]).cuda(non_blocking=True))
                 img2 = augmentation(torch.Tensor(nonmember_img_list[sample_list[j][0]]).cuda(non_blocking=True))
@@ -539,47 +541,46 @@ if __name__ == '__main__':
     parser = get_parser()
     args = parser.parse_args()
 
-    # data
-    args.published_path = args.published_path + 'published({})/'.format(args.exp_index)
-    args.unpublished_path = args.unpublished_path + 'unpublished({})/'.format(args.exp_index)
+    published_path = args.published_path
+    unpublished_path = args.unpublished_path
 
-    if not os.path.exists(args.published_path):
-        os.mkdir(args.published_path)
-    if not os.path.exists(args.unpublished_path):
-        os.mkdir(args.unpublished_path)
+    results = {'detected': 0, 'cost': 0, 'Q/M': 0, 'test_acc': 0}
 
-    # generate twins data and published one uniformly at random
-    '''
-    if you have generated marked data from classifier_cifar100.py, you could just use them here without needing to regenerate them.
-    '''
-    print('Generate marked data and published one uniformly at random...')
-    args.marked_file = {}
-    generate_twins_data(args)
+    for exp_index in range(args.num_experiments):
+        
+        print('=================================================================================')
+        print('Running {}-th experiment'.format(exp_index))
 
-    # train encoder by simclr
-    train(args)
+        # data
+        args.published_path = published_path + 'published({})/'.format(exp_index)
+        args.unpublished_path = unpublished_path + 'unpublished({})/'.format(exp_index)
 
-    # detect the encoder
-    args.image_mean = [0.4914672374725342, 0.4822617471218109, 0.4467701315879822]
-    args.image_std = [0.24703224003314972, 0.24348513782024384, 0.26158785820007324]
+        if os.path.exists(args.published_path):
+            shutil.rmtree(args.published_path)
+        if os.path.exists(args.unpublished_path):
+            shutil.rmtree(args.unpublished_path)
+        if not os.path.exists(args.published_path):
+            os.mkdir(args.published_path)
+        if not os.path.exists(args.unpublished_path):
+            os.mkdir(args.unpublished_path)
 
-    if not os.path.exists(args.published_path):
-        os.mkdir(args.published_path)
-    if not os.path.exists(args.unpublished_path):
-        os.mkdir(args.unpublished_path)
+        # generate twins data and published one uniformly at random
+        print('Generate marked data and published one uniformly at random...')
+        args.marked_file = {}
+        generate_twins_data(args)
 
-    epoch = ['200', '400', '600', '800', '1000']
+        # train encoder by simclr
+        print('Train encoder by SIMCLR')
+        train(args)
 
-    results = {}
-    for x in epoch:
-        results[x] = {'detected': 0, 'cost': 0, 'test_acc': 0}
+        # detect the encoder
+        args.image_mean = [0.4914672374725342, 0.4822617471218109, 0.4467701315879822]
+        args.image_std = [0.24703224003314972, 0.24348513782024384, 0.26158785820007324]
 
-    # train downstream model
-    for num_epoch in epoch:
-        args.num_epoch = num_epoch
-        print('check the trained encoder in {} epochs'.format(num_epoch))
+        # train downstream model
+        print('Evaluate the trained encoder by measuring the test accuracy of the downstream classifier')
         optimal_acc = finetune(args)
-        results[num_epoch]['test_acc'] = optimal_acc
+        results['test_acc'] += optimal_acc / args.num_experiments
                 
         # random shuffle
         listing = os.listdir(args.published_path)
@@ -590,15 +591,16 @@ if __name__ == '__main__':
                 for j in samples:
                     sample_list.append([j,i])
         random.shuffle(sample_list)
-
-        args.inference_mode = '64'
             
         transform = transforms.Compose([transforms.ToTensor(),
                                         transforms.Normalize(mean=args.image_mean, std=args.image_std)])
             
-        # membership inference
+        # detect data use
+        print('Detect data use in the visual encoder')
         cost, detected = detection(transform, sample_list, args)
-        results[num_epoch]['cost'] = cost
-        results[num_epoch]['detected'] = detected
+        results['cost'] += cost / args.num_experiments
+        results['Q/M'] += cost / 50000 / args.num_experiments
+        results['detected'] += detected / args.num_experiments
 
+    print('print out results averaged over {} experiments...'.format(args.num_experiments))
     print(results)

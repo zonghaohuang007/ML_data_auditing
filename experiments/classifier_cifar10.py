@@ -20,7 +20,7 @@ from scipy import stats
 import math
 
 import models
-from mark import generate_exclusive_twins2
+from mark import generate_mark_data
 
 # torch.backends.cudnn.benchmark = forest.consts.BENCHMARK
 torch.multiprocessing.set_sharing_strategy(forest.consts.SHARING_STRATEGY)
@@ -62,6 +62,7 @@ def find_tau(p, N):
 def detection(transform, augmentation, sample_list, num_classes, classes, args):
 
     # target model
+    print('Loading the target model...')
     ckpt = torch.load(args.published_path + 'target_model.pth')
     target_model = models.get_model(args.net[0], args.dataset, args.pretrained)
     target_model.cuda()
@@ -90,8 +91,8 @@ def detection(transform, augmentation, sample_list, num_classes, classes, args):
     acc_full_en = 0
     acc_label_me = 0
     acc_label_en = 0
-    alpha1 = 0.025
-    alpha2 = 0.025
+    alpha1 = args.p / 2
+    alpha2 = args.p / 2
     tau =  find_tau(alpha2, len(sample_list))
     for j in range(len(sample_list)):
 
@@ -101,7 +102,7 @@ def detection(transform, augmentation, sample_list, num_classes, classes, args):
         output2_full = torch.zeros(1, num_classes).cuda(non_blocking=True)
         output1_label = torch.zeros(1, num_classes).cuda(non_blocking=True)
         output2_label = torch.zeros(1, num_classes).cuda(non_blocking=True)
-        for _ in range(int(args.inference_mode)):
+        for _ in range(args.K):
             with torch.no_grad():
                 img1 = augmentation(torch.Tensor(member_img_list[sample_list[j][0]]).cuda(non_blocking=True))
                 img2 = augmentation(torch.Tensor(nonmember_img_list[sample_list[j][0]]).cuda(non_blocking=True))
@@ -122,11 +123,11 @@ def detection(transform, augmentation, sample_list, num_classes, classes, args):
             output2_label[0][prediction2] += 1
 
         # average full vectors over several augmentation
-        output1_full /= int(args.inference_mode)   
-        output2_full /= int(args.inference_mode)
+        output1_full /= args.K   
+        output2_full /= args.K
 
-        output1_label /= int(args.inference_mode)   
-        output2_label /= int(args.inference_mode)
+        output1_label /= args.K   
+        output2_label /= args.K
 
         # smooth the vector
         for i in range(num_classes):
@@ -246,25 +247,25 @@ def detection(transform, augmentation, sample_list, num_classes, classes, args):
         if detected_label_en and detected_label_me and detected_full_en and detected_full_me:
             break
 
-    print('==>full me | cost: {} | membership acc: {}'.format(cost_full_me, acc_full_me / cost_full_me))
+    print('==>con1 | cost: {} | membership acc: {}'.format(cost_full_me, acc_full_me / cost_full_me))
     if detected_full_me:
         detected_full_me = 1
     else:
         detected_full_me = 0
 
-    print('==>full en | cost: {} | membership acc: {}'.format(cost_full_en, acc_full_en / cost_full_en))
+    print('==>con2 | cost: {} | membership acc: {}'.format(cost_full_en, acc_full_en / cost_full_en))
     if detected_full_en:
         detected_full_en = 1
     else:
         detected_full_en = 0
 
-    print('==>label me | cost: {} | membership acc: {}'.format(cost_label_me, acc_label_me / cost_label_me))
+    print('==>con3 | cost: {} | membership acc: {}'.format(cost_label_me, acc_label_me / cost_label_me))
     if detected_label_me:
         detected_label_me = 1
     else:
         detected_label_me = 0
 
-    print('==>label en | cost: {} | membership acc: {}'.format(cost_label_en, acc_label_en / cost_label_en))
+    print('==>con4 | cost: {} | membership acc: {}'.format(cost_label_en, acc_label_en / cost_label_en))
     if detected_label_en:
         detected_label_en = 1
     else:
@@ -283,11 +284,6 @@ def prepare_data_loader(path, data, model, data_mean, data_std, args):
     data.trainloader = torch.utils.data.DataLoader(trainset, batch_size=min(model.defs.batch_size, len(trainset)),
                                                     shuffle=True, drop_last=False, num_workers=4, pin_memory=True)
 
-    if args.ablation < 1.0:
-        sample = random.sample(range(len(trainset)), int(args.ablation * len(trainset)))
-        partialset = forest.data.datasets.Subset(trainset, sample)
-        data.partialloader = torch.utils.data.DataLoader(partialset, batch_size=min(model.defs.batch_size, len(partialset)),
-                                                             shuffle=True, drop_last=False, num_workers=4, pin_memory=True)
     print('OK')
 
 
@@ -306,26 +302,25 @@ def generate_twins_data(args):
         if not os.path.exists(args.unpublished_path + i):
             os.mkdir(args.unpublished_path + i)
 
-    if args.transform == 'exclusive':
-        for i in listing:
-            file_list1 = os.listdir(args.img_path + i)
-            file_list2 = random.sample(file_list1, int(len(file_list1)*args.mark_budget))
-            args.marked_file[i] = file_list2
+    for i in listing:
+        file_list1 = os.listdir(args.img_path + i)
+        file_list2 = random.sample(file_list1, int(len(file_list1)*args.mark_budget))
+        args.marked_file[i] = file_list2
 
-            for j in range(len(file_list1)):
-                image = Image.open(args.img_path + i + '/' + file_list1[j])
+        for j in range(len(file_list1)):
+            image = Image.open(args.img_path + i + '/' + file_list1[j])
 
-                if file_list1[j] in file_list2:
-                    image1, image2 = generate_exclusive_twins2(image, args)
-                    if random.choice([True,False]):
-                        image1.save(args.published_path + '/' + i + '/' + file_list1[j])
-                        image2.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
-                    else:
-                        image2.save(args.published_path + '/' + i + '/' + file_list1[j])
-                        image1.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
+            if file_list1[j] in file_list2:
+                image1, image2 = generate_mark_data(image, args)
+                if random.choice([True,False]):
+                    image1.save(args.published_path + '/' + i + '/' + file_list1[j])
+                    image2.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
                 else:
-                    image.save(args.published_path + '/' + i + '/' + file_list1[j])
-                    image.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
+                    image2.save(args.published_path + '/' + i + '/' + file_list1[j])
+                    image1.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
+            else:
+                image.save(args.published_path + '/' + i + '/' + file_list1[j])
+                image.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
 
     print('finished generating twins images.')
 
@@ -355,9 +350,10 @@ def get_parser():
 
     # Files and folders
     parser.add_argument('--name', default='', type=str, help='Name tag for the result table and possibly for export folders.')
-    parser.add_argument('--img_path', type=str, default='./data/cifar10/train/')
-    parser.add_argument('--published_path', type=str, default='./data/cifar10/')
-    parser.add_argument('--unpublished_path', type=str, default='./data/cifar10/')
+    parser.add_argument('--data_path', default='', type=str)
+    parser.add_argument('--img_path', type=str, default='./experiments/data/cifar10/train/')
+    parser.add_argument('--published_path', type=str, default='./experiments/data/cifar10/')
+    parser.add_argument('--unpublished_path', type=str, default='./experiments/data/cifar10/')
     ###########################################################################
 
     parser.add_argument('--attackoptim', default='signAdam', type=str)
@@ -419,14 +415,6 @@ def get_parser():
     parser.add_argument('--benchmark', default='', type=str, help='Path to benchmarking setup (pickle file)')
     parser.add_argument('--benchmark_idx', default=0, type=int, help='Index of benchmark test')
 
-    # our parameters in marking:
-    parser.add_argument('--mark_budget', default=0.1, type=float)
-    parser.add_argument("--radius", type=int, default=10)
-    parser.add_argument("--mepochs", type=int, default=90)
-    parser.add_argument("--lambda_ft_l2", type=float, default=0.01)
-    parser.add_argument("--lambda_l2_img", type=float, default=0.0005)
-    parser.add_argument("--moptimizer", type=str, default="sgd,lr=1.0")
-
     # Debugging:
     parser.add_argument('--dryrun', action='store_true')
     parser.add_argument('--save', default='full', help='Export poisons into a given format. Options are full/limited/automl/numpy.')
@@ -435,8 +423,18 @@ def get_parser():
     parser.add_argument("--local_rank", default=None, type=int, help='Distributed rank. This is an INTERNAL ARGUMENT! '
                                                                      'Only the launch utility should set this argument!')
     
-    parser.add_argument("--exp_index", default=0, type=int)
+    # parameters of marking algorithm:
+    parser.add_argument("--mepochs", type=int, default=90)
+    parser.add_argument("--lambda_ft_l2", type=float, default=0.01)
+    parser.add_argument("--lambda_l2_img", type=float, default=0.0005)
+    parser.add_argument("--moptimizer", type=str, default="sgd,lr=1.0")
 
+    # main parameters
+    parser.add_argument('--mark_budget', default=0.1, type=float, help='ratio of marked data or percentage of training data contributed from a data owner')
+    parser.add_argument("--radius", type=int, default=10, help='epsilon: utility bound')
+    parser.add_argument("--K", type=int, default=16, help='K: number of perturbations per sample in detection')
+    parser.add_argument("--p", type=float, default=0.05, help='p: upper bound on false-detection rate')
+    parser.add_argument("--num_experiments", type=int, default=20, help='number of experiments to run')
 
     return parser
 
@@ -458,71 +456,87 @@ if __name__ == "__main__":
     args.data_transform = data.trainset.transform
     args.data_augmentation = data.augment
     
-    # data
-    args.published_path = args.published_path + 'published({})/'.format(args.exp_index)
-    args.unpublished_path = args.unpublished_path + 'unpublished({})/'.format(args.exp_index)
-
-    if not os.path.exists(args.published_path):
-        os.mkdir(args.published_path)
-    if not os.path.exists(args.unpublished_path):
-        os.mkdir(args.unpublished_path)
     '''
-    full: output is a confidence vector and the ground-truth is known
-    full2: output is a confidence vector but the ground-truth is unknown
-    label: output is a prediction but the ground-truth if known
-    label2: output is a prediction and the ground-truth is unknown
+    con1: output is a confidence vector and the ground-truth is known
+    con2: output is a confidence vector but the ground-truth is unknown
+    con3: output is a prediction but the ground-truth if known
+    con4: output is a prediction and the ground-truth is unknown
     '''
-    outputs = ['full', 'full2', 'label', 'label2']  
-    args.transform = 'exclusive'
-    args.net = ['ResNet18']
-    args.inference_mode = '16'
+    outputs = ['con1', 'con2', 'con3', 'con4']  
 
     results = {}
     for i in outputs:
-        results[i] = {'detected': 0, 'cost': 0, 'test_acc': 0}
+        results[i] = {'detected': 0, 'cost': 0, 'Q/M': 0, 'test_acc': 0}
 
-    # generate twins data and published one uniformly at random
-    print('Generate marked data and published one uniformly at random...')
-    args.marked_file = {}
-    generate_twins_data(args)
+    published_path = args.published_path
+    unpublished_path = args.unpublished_path
 
-    # train target model
-    model = forest.Victim(args, setup=setup)
-    data = forest.Kettle(args, model.defs.batch_size, model.defs.augmentations, setup=setup)
-    data_mean, data_std = data.trainset.data_mean, data.trainset.data_std
+    for exp_index in range(args.num_experiments):
+        
+        print('=================================================================================')
+        print('Running {}-th experiment'.format(exp_index))
 
-    print('Training a ResNet18 model on published data...')
-    prepare_data_loader(args.published_path, data, model, data_mean, data_std, args)
-    stats_results = model.validate(data, 1)
-    torch.save(model.model.state_dict(), args.published_path + 'target_model.pth')
-            
-    for output in outputs:
-        results[output]['test_acc'] += stats_results['valid_accs'][-1]
+        # data
+        args.published_path = published_path + 'published({})/'.format(exp_index)
+        args.unpublished_path = unpublished_path + 'unpublished({})/'.format(exp_index)
 
-    print('Detect the target ResNet18 model...')
-    # random shuffle the pairs of published data and unpublished data
-    listing = os.listdir(args.published_path)
-    sample_list = []
-    for i in listing:
-        if os.path.isdir(args.published_path + i):
-            # file_list = os.listdir(args.published_path + i)
-            samples = args.marked_file[i]
-            # samples = file_list
-            for j in samples:
-                sample_list.append([j,i])
-    random.shuffle(sample_list)
+        if os.path.exists(args.published_path):
+            shutil.rmtree(args.published_path)
+        if os.path.exists(args.unpublished_path):
+            shutil.rmtree(args.unpublished_path)
+        if not os.path.exists(args.published_path):
+            os.mkdir(args.published_path)
+        if not os.path.exists(args.unpublished_path):
+            os.mkdir(args.unpublished_path)
 
-    # membership inference
-    cost1, detected1, cost2, detected2, cost3, detected3, cost4, detected4 = detection(data.trainset.transform, data.augment, sample_list, len(data.trainset.classes), data.trainset.classes, args)
-    results['full']['cost'] += cost1
-    results['full']['detected'] += detected1
-    results['full2']['cost'] += cost2
-    results['full2']['detected'] += detected2
-    results['label']['cost'] += cost3
-    results['label']['detected'] += detected3
-    results['label2']['cost'] += cost4
-    results['label2']['detected'] += detected4
+        # generate twins data and published one uniformly at random
+        print('Generate marked data and published one uniformly at random...')
+        args.marked_file = {}
+        generate_twins_data(args)
 
+        # train target model
+        model = forest.Victim(args, setup=setup)
+        data = forest.Kettle(args, model.defs.batch_size, model.defs.augmentations, setup=setup)
+        data_mean, data_std = data.trainset.data_mean, data.trainset.data_std
+
+        print('Training a {} model on published data...'.format(args.net[0]))
+        prepare_data_loader(args.published_path, data, model, data_mean, data_std, args)
+        stats_results = model.validate(data, 1)
+        print('Saving target model to {}...'.format(args.published_path + 'target_model.pth'))
+        torch.save(model.model.state_dict(), args.published_path + 'target_model.pth')
+                
+        for output in outputs:
+            results[output]['test_acc'] += stats_results['valid_accs'][-1] / args.num_experiments
+
+        print('Detect the data use in target model...')
+        # random shuffle the pairs of published data and unpublished data
+        listing = os.listdir(args.published_path)
+        sample_list = []
+        for i in listing:
+            if os.path.isdir(args.published_path + i):
+                # file_list = os.listdir(args.published_path + i)
+                samples = args.marked_file[i]
+                # samples = file_list
+                for j in samples:
+                    sample_list.append([j,i])
+        random.shuffle(sample_list)
+
+        # membership inference
+        cost1, detected1, cost2, detected2, cost3, detected3, cost4, detected4 = detection(data.trainset.transform, data.augment, sample_list, len(data.trainset.classes), data.trainset.classes, args)
+        results['con1']['cost'] += cost1 / args.num_experiments
+        results['con1']['Q/M'] += cost1 / 50000 / args.num_experiments
+        results['con1']['detected'] += detected1 / args.num_experiments
+        results['con2']['cost'] += cost2 / args.num_experiments
+        results['con2']['Q/M'] += cost2 / 50000 / args.num_experiments
+        results['con2']['detected'] += detected2 / args.num_experiments
+        results['con3']['cost'] += cost3 / args.num_experiments
+        results['con3']['Q/M'] += cost3 / 50000 / args.num_experiments
+        results['con3']['detected'] += detected3 / args.num_experiments
+        results['con4']['cost'] += cost4 / args.num_experiments
+        results['con4']['Q/M'] += cost4 / 50000 / args.num_experiments
+        results['con4']['detected'] += detected4 / args.num_experiments
+
+    print('print out results averaged over {} experiments...'.format(args.num_experiments))
     print(results)
 
     print('-------------Job finished.-------------------------')
