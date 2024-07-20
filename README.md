@@ -56,7 +56,7 @@ If you find this git repo is helpful for your research, please consider to cite:
 ```
 @inproceedings{huang2024:auditdata,
   title={A general framework for data-use auditing of ML models},
-  author={Huang, Z. and Gong, N. Z. and Reiter M. K.},
+  author={Huang, Z. and Gong, N. Z. and Reiter, M. K.},
   booktitle={31\textsuperscript{st}} ACM Conference on Computer and Communications Security,
   year={2024}
 }
