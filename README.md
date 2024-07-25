@@ -1,4 +1,4 @@
-## This is official code repo for the CCS 2024 paper: ``A General Framework for Data-Use Auditing of ML Models''
+## This is official code repo for the CCS 2024 paper: ``[A General Framework for Data-Use Auditing of ML Models](https://arxiv.org/pdf/2407.15100)''
 
 ### Environment
 (Please feel free to reach out if you find any missing package in the below list)
