@@ -48,11 +48,26 @@ python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <p
 bash ./experiments/run.sh
 ```
 
+### To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool:
 
-If you have any question on our work or this repo, please feel free to email the author.
+Mark your image:
+```
+class Args:
+    radius = 10 # epsilon: utility bound
+    mepoch = 90 # number of iteration to update the mark
+    raw_image_path = <the path of raw image>
+    published_path = <the path of saving your published image>
+    unpublished_path = <the path of saving your unpublished image>
+args=Args()
+data_marking(args)
+```
+
+Detect the use of your data in a target ML model:
+```
+```
 
 
-If you find this git repo is helpful for your research, please consider to cite:
+If you have any question on our work or this repo, please feel free to email the author. If you find this git repo is helpful for your research, please consider to cite:
 ```
 @inproceedings{huang2024:auditdata,
   title={A general framework for data-use auditing of ML models},
