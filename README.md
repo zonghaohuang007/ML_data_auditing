@@ -50,8 +50,10 @@ bash ./experiments/run.sh
 
 ### To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool:
 
-Mark your image:
+Mark your image (for marking other type of data, e.g., text, please contact the author for help):
 ```
+from data_marking import data_marking
+
 class Args:
     radius = 10 # epsilon: utility bound
     mepoch = 90 # number of iteration to update the mark
@@ -64,10 +66,29 @@ data_marking(args)
 
 Detect the use of your data in a target ML model:
 ```
+from data_use_detection import data_use_detection
+
+class Args:
+    p = 0.05 # the upper bound on false-detection rate
+    published_data_dir = <the dir path where the set of your published data is saved>
+    unpublished_data_dir = <the dir path where the set of your unpublished data is saved>
+args=Args()
+
+model = # load the target model or provide its API
+black_box_membership_inference = # define the black box membership inference metric as the score function whose return is a value, indicating the likelihood of the input
+published_data = # load the list of your published data
+unpublished_data = # load the list of your unpublished data
+
+detected_result = data_use_detection(model, black_box_membership_inference, published_data, unpublished_data)
+if detected_result:
+    print('The target model uses your published data, under a false-detection rate less than {}'.format(args.p))
+else:
+    print('The target model does not use your published data')
 ```
 
 
-If you have any question on our work or this repo, please feel free to email the author. If you find this git repo is helpful for your research, please consider to cite:
+If you have any question on our work or this repo, please feel free to email the author. 
+If you find this git repo is helpful for your research, please consider to cite:
 ```
 @inproceedings{huang2024:auditdata,
   title={A general framework for data-use auditing of ML models},
