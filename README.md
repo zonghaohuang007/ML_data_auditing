@@ -79,7 +79,7 @@ black_box_membership_inference = # define the black box membership inference met
 published_data = # load the list of your published data
 unpublished_data = # load the list of your unpublished data
 
-detected_result = data_use_detection(model, black_box_membership_inference, published_data, unpublished_data)
+detected_result = data_use_detection(model, black_box_membership_inference, published_data, unpublished_data, args)
 if detected_result:
     print('The target model uses your published data, under a false-detection rate less than {}'.format(args.p))
 else:
@@ -88,6 +88,7 @@ else:
 
 
 If you have any question on our work or this repo, please feel free to email the author. 
+
 If you find this git repo is helpful for your research, please consider to cite:
 ```
 @inproceedings{huang2024:auditdata,
