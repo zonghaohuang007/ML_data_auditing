@@ -75,8 +75,11 @@ class Args:
 args=Args()
 
 model = # load the target model or provide its API
-black_box_membership_inference = # define the black box membership inference metric as the score function whose return is a value, indicating the likelihood of the input
+
+black_box_membership_inference = # define the black box membership inference metric as the score function whose return is a value, indicating the likelihood of the input being a member of the training set of the target model
+
 published_data = # load the list of your published data
+
 unpublished_data = # load the list of your unpublished data
 
 detected_result = data_use_detection(model, black_box_membership_inference, published_data, unpublished_data, args)
