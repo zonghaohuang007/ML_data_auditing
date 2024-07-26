@@ -1,6 +1,6 @@
-## This is official code repo for the CCS 2024 paper: ``[A General Framework for Data-Use Auditing of ML Models](https://arxiv.org/pdf/2407.15100)''
+# The official code repo for CCS 2024 paper: ``[A General Framework for Data-Use Auditing of ML Models](https://arxiv.org/pdf/2407.15100)''
 
-### Environment
+## Environment
 (Please feel free to reach out if you find any missing package in the below list)
 ```
 python==3.9.15
@@ -17,7 +17,7 @@ torchvision==0.16.2
 transformers==4.35.2
 ```
 
-### To download CIFAR10, CIFAR100, TinyImageNet datasets
+## To download CIFAR10, CIFAR100, TinyImageNet datasets
 
 ```
 wget http://cs231n.stanford.edu/tiny-imagenet-200.zip
@@ -25,7 +25,7 @@ wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
 wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz 
 ```
 
-### To prepare raw CIFAR10, CIFAR100, TinyImageNet
+## To prepare raw CIFAR10, CIFAR100, TinyImageNet
 
 Export CIFAR10 as a dataset dir in './experiments/data/cifar10':
 ```
@@ -42,13 +42,13 @@ Export TinyImageNet as a dataset dir in './experiments/data/tinyimagenet':
 python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <path where tiny-imagenet-200.zip is downloaded and unzipped> --saved_path './experiments/data/tinyimagenet'
 ```
 
-### To reproduce the main experimental results of our proposed framework in the paper:
+## To reproduce the main experimental results of our proposed framework in the paper:
 (In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
 ```
 bash ./experiments/run.sh
 ```
 
-### To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool:
+## To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool:
 
 Mark your image (for marking other type of data, e.g., text, please contact the author for help):
 ```
