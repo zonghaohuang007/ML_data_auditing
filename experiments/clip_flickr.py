@@ -150,7 +150,7 @@ def generate_twins_data(dataset, args):
     published = []
     unpublished = []
     train = []
-    sampled_idx = random.sample(list(range(len(dataset))), int(len(dataset)*0.1))  # assume 10% is contributed from a data owner
+    sampled_idx = random.sample(list(range(len(dataset))), int(len(dataset)*args.mark_budget))  # assume 10% is contributed from a data owner
     for i in range(len(dataset)):
         
         image = dataset[i]['image']
@@ -206,6 +206,7 @@ def get_parser():
                                                                      'Only the launch utility should set this argument!')
 
     parser.add_argument("--radius", type=int, default=10, help='epsilon: utility bound')
+    parser.add_argument('--mark_budget', default=0.1, type=float, help='ratio of marked data or percentage of training data contributed from a data owner')
     parser.add_argument("--p", type=float, default=0.05, help='p: upper bound on false-detection rate')
     parser.add_argument("--num_experiments", type=int, default=20, help='number of experiments to run')
 
@@ -227,9 +228,10 @@ if __name__ == '__main__':
         print('Running {}-th experiment'.format(exp_index))
 
         dataset = load_dataset("nlphuji/flickr30k")['test']
+        trainset = dataset.select([i for i in list(range(25000))])
         testset = dataset.select([i for i in list(range(25000,31014))])
 
-        trainset, publishedset, unpublishedset = generate_twins_data(dataset, args)
+        trainset, publishedset, unpublishedset = generate_twins_data(trainset, args)
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model, preprocess = clip.load("ViT-B/32", device=device, jit=False)
@@ -248,7 +250,7 @@ if __name__ == '__main__':
 
         # initial test
         cost, detected = detection(model, publishedset, unpublishedset, preprocess, args)
-        results['0']['cost'] += cost / args.num_experiments
+        results['0']['cost'] += cost * 2 / args.num_experiments
         results['0']['Q/M'] += cost / 25000 / args.num_experiments
         results['0']['detected'] += detected / args.num_experiments
         model.eval()
@@ -361,7 +363,7 @@ if __name__ == '__main__':
             print(f"Epoch [{epoch+1}/{num_epochs}], Batch Loss: {test_loss/len(test_dataloader)}, Sim: {test_sim/len(test_dataloader)}, Image acc: {test_img_acc/len(test_dataloader)}, Cap acc: {test_cap_acc/len(test_dataloader)}")
 
             cost, detected = detection(model, publishedset, unpublishedset, preprocess, args)
-            results[str(epoch+1)]['cost'] += cost / args.num_experiments
+            results[str(epoch+1)]['cost'] += cost * 2 / args.num_experiments
             results[str(epoch+1)]['Q/M'] += cost / 25000 / args.num_experiments
             results[str(epoch+1)]['detected'] += detected / args.num_experiments
             results[str(epoch+1)]['acc'] += (test_img_acc/len(test_dataloader) + test_cap_acc/len(test_dataloader))/2 / args.num_experiments

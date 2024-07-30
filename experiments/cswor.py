@@ -10,7 +10,6 @@ from scipy.special import beta, betaln, comb, gammaln
 from utils import *
 from misc import *
 import multiprocessing as mp
-import seaborn as sns
 import time
 
 from multiprocess import Pool

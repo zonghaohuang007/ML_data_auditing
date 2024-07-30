@@ -172,9 +172,8 @@ def generate_twins_data(args):
                     image1.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
             else:
                 image.save(args.published_path + '/' + i + '/' + file_list1[j])
-                image.save(args.unpublished_path + '/' + i + '/' + file_list1[j])
 
-    print('finished generating twins images.')
+    print('finished generating marked images.')
 
 
 class LinModel(nn.Module):
@@ -526,7 +525,7 @@ def detection(transform, sample_list, args):
 
         if detected:
             break
-
+    
     print('==>cost: {} | membership acc: {}'.format(cost, acc / cost))
     if detected:
         detected = 1
@@ -598,7 +597,7 @@ if __name__ == '__main__':
         # detect data use
         print('Detect data use in the visual encoder')
         cost, detected = detection(transform, sample_list, args)
-        results['cost'] += cost / args.num_experiments
+        results['cost'] += cost * 2 * args.K / args.num_experiments
         results['Q/M'] += cost / 50000 / args.num_experiments
         results['detected'] += detected / args.num_experiments
 

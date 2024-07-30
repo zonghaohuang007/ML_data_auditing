@@ -6,16 +6,22 @@
 python==3.9.15
 datasets==2.16.1
 numpy==1.23.5
-openai==1.10.0
 peft==0.10.0
 pillow==9.3.0
 scikit-learn==1.1.2
 scipy==1.8.0
 tokenizers==0.15.2
-torch==1.13.0
+torch==2.1.2
 torchvision==0.16.2
 transformers==4.35.2
+bitsandbytes==0.43.2
+clip==1.0
 ```
+To install the package of "clip==1.0", please follow [this git repo](https://github.com/openai/CLIP):
+```
+pip install git+https://github.com/openai/CLIP.git
+```
+
 
 ## To download CIFAR10, CIFAR100, TinyImageNet datasets
 

@@ -191,6 +191,7 @@ def get_parser():
     ###########################################################################
     # Central:
     parser.add_argument("--p", type=float, default=0.05, help='p: upper bound on false-detection rate')
+    parser.add_argument('--mark_budget', default=0.1, type=float, help='ratio of marked data or percentage of training data contributed from a data owner')
     parser.add_argument("--num_experiments", type=int, default=20, help='number of experiments to run')
 
     return parser
@@ -226,7 +227,7 @@ if __name__ == '__main__':
         sample_idx = random.sample(list(range(len(loaded_data["test"]))), 2000)
         test_dataset = loaded_data["test"].select(sample_idx)
 
-        sample_idx = random.sample(list(range(len(train_dataset))), int(len(train_dataset)*0.1))  # 10% is assumed to be owned by a data owner
+        sample_idx = random.sample(list(range(len(train_dataset))), int(len(train_dataset)*args.mark_budget))  # 10% is assumed to be owned by a data owner
 
         published_data = {'prompt':[]}
         unpublished_data = {'prompt':[]}
@@ -247,7 +248,7 @@ if __name__ == '__main__':
                     train_data['prompt'].append(f"### Given text: '{twins2}'\n### Question: Please classify the above given text into one of these four classes: [World, Sports, Business, Sci/Tech].\n### Answer: {classes[train_dataset[i]['label']]}")
             else:
                 train_data['prompt'].append(f"### Given text: '{train_dataset[i]['text']}'\n### Question: Please classify the above given text into one of these four classes: [World, Sports, Business, Sci/Tech].\n### Answer: {classes[train_dataset[i]['label']]}")
-        print('finished twins data generation.')
+        print('finished marked data generation.')
 
         test_data = {'prompt':[], 'label': []}
         for i in range(len(test_dataset)):
@@ -294,7 +295,7 @@ if __name__ == '__main__':
         test_acc = evaluate_accuracy(model, tokenizer, test_data)
         results['0']['test_acc'] += test_acc / args.num_experiments
         cost, detected = detection(model, published_data, unpublished_data, args)
-        results['0']['cost'] += cost / args.num_experiments
+        results['0']['cost'] += cost * 2 / args.num_experiments
         results['0']['Q/M'] += cost / 10000 / args.num_experiments
         results['0']['detected'] += detected / args.num_experiments
 
@@ -323,7 +324,7 @@ if __name__ == '__main__':
             test_acc = evaluate_accuracy(model, tokenizer, test_data)
             results[str(epoch+1)]['test_acc'] += test_acc / args.num_experiments
             cost, detected = detection(model, published_data, unpublished_data, args)
-            results[str(epoch+1)]['cost'] += cost / args.num_experiments
+            results[str(epoch+1)]['cost'] += cost * 2 / args.num_experiments
             results[str(epoch+1)]['Q/M'] += cost / 10000 / args.num_experiments
             results[str(epoch+1)]['detected'] += detected / args.num_experiments
 

@@ -33,8 +33,8 @@ class _VictimSingle(_VictimBase):
         self.model, self.defs, self.criterion, self.optimizer, self.scheduler = self._initialize_model(self.args.net[0])
 
         self.model.to(**self.setup)
-        if torch.cuda.device_count() > 1:
-            self.model = torch.nn.DataParallel(self.model)
+        # if torch.cuda.device_count() > 1:
+        #     self.model = torch.nn.DataParallel(self.model)
         print(f'{self.args.net[0]} model initialized with random key {self.model_init_seed}.')
 
     """ METHODS FOR (CLEAN) TRAINING AND TESTING OF BREWED POISONS"""
