@@ -49,7 +49,7 @@ python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <p
 ```
 
 ## To reproduce the main experimental results of our proposed framework in the paper:
-(In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
+Please check the notes or comments in "./experiments/run.sh" for the information on the mapping between main results in the paper and the corresponding codes used to reproduce them. (In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
 ```
 bash ./experiments/run.sh
 ```
