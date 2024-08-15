@@ -332,8 +332,8 @@ def get_parser():
 
     ###########################################################################
     # Central:
-    parser.add_argument('--net', default='TinyImageNet', type=lambda s: [str(item) for item in s.split(',')])
-    parser.add_argument('--dataset', default='CIFAR10', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
+    parser.add_argument('--net', default='ResNet18', type=lambda s: [str(item) for item in s.split(',')])
+    parser.add_argument('--dataset', default='TinyImageNet', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
     parser.add_argument('--recipe', default='gradient-matching', type=str, choices=['gradient-matching', 'gradient-matching-private',
                                                                                     'watermarking', 'poison-frogs', 'metapoison', 'bullseye'])
     parser.add_argument('--threatmodel', default='single-class', type=str, choices=['single-class', 'third-party', 'random-subset'])
