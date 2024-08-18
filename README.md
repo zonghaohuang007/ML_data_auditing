@@ -48,6 +48,13 @@ Export TinyImageNet as a dataset dir in './experiments/data/tinyimagenet':
 python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <path where tiny-imagenet-200.zip is downloaded and unzipped> --saved_path './experiments/data/tinyimagenet'
 ```
 
+## To get access to Llama models
+
+1. register an account in huggingface (https://huggingface.co/);
+2. make a request to Meta AI (https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) (it might take one or two business days for get approved from Meta AI);
+3. create an access token (https://huggingface.co/settings/tokens);
+4. in your terminal, run `huggingface-cli login` and provide your access token.
+
 ## To reproduce the main experimental results of our proposed framework in the paper:
 Please check the notes or comments in "./experiments/run.sh" for the information on the mapping between main results in the paper and the corresponding codes used to reproduce them. (In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
 ```
