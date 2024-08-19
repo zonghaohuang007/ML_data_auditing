@@ -523,16 +523,16 @@ if __name__ == "__main__":
         # membership inference
         cost1, detected1, cost2, detected2, cost3, detected3, cost4, detected4 = detection(data.trainset.transform, data.augment, sample_list, len(data.trainset.classes), data.trainset.classes, args)
         results['con1']['cost'] += cost1 * 2 * args.K / args.num_experiments
-        results['con1']['Q/M'] += cost1 / 100000 / args.num_experiments
+        results['con1']['Q/M'] += cost1 / 50000 / args.num_experiments
         results['con1']['detected'] += detected1 / args.num_experiments
         results['con2']['cost'] += cost2 * 2 * args.K / args.num_experiments
-        results['con2']['Q/M'] += cost2 / 100000 / args.num_experiments
+        results['con2']['Q/M'] += cost2 / 50000 / args.num_experiments
         results['con2']['detected'] += detected2 / args.num_experiments
         results['con3']['cost'] += cost3 * 2 * args.K / args.num_experiments
-        results['con3']['Q/M'] += cost3 / 100000 / args.num_experiments
+        results['con3']['Q/M'] += cost3 / 50000 / args.num_experiments
         results['con3']['detected'] += detected3 / args.num_experiments
         results['con4']['cost'] += cost4 * 2 * args.K / args.num_experiments
-        results['con4']['Q/M'] += cost4 / 100000 / args.num_experiments
+        results['con4']['Q/M'] += cost4 / 50000 / args.num_experiments
         results['con4']['detected'] += detected4 / args.num_experiments
 
     print('print out results averaged over {} experiments...'.format(args.num_experiments))
