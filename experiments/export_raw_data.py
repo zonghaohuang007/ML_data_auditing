@@ -14,7 +14,7 @@ def options():
     # Central:
     parser.add_argument('--dataset', default='CIFAR10', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
     parser.add_argument('--saved_path', default='', type=str)
-    parser.add_argument('--data_path', default='', type=str)
+    parser.add_argument('--data_path', default='./', type=str)
     parser.add_argument('--save', default='full', help='Export poisons into a given format. Options are full/limited/automl/numpy.')
 
     ######################################## the below are not used in running this file #############################################

@@ -551,8 +551,8 @@ if __name__ == '__main__':
         print('Running {}-th experiment'.format(exp_index))
 
         # data
-        args.published_path = published_path + 'published({})/'.format(exp_index)
-        args.unpublished_path = unpublished_path + 'unpublished({})/'.format(exp_index)
+        args.published_path = published_path + 'encoder_published({})/'.format(exp_index)
+        args.unpublished_path = unpublished_path + 'encoder_unpublished({})/'.format(exp_index)
 
         if os.path.exists(args.published_path):
             shutil.rmtree(args.published_path)

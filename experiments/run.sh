@@ -2,11 +2,11 @@
 
 # To reproduce results in table 2: overall performance of our proposed method applied in image classifiers on different image benchmarks
 ## auditing cifar10 in image classifier
-python3 ./experiments/classifier_cifar10.py --data_path <path where cifar-10-python.tar.gz is downloaded and unzipped> --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
+python3 ./experiments/classifier_cifar10.py --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
 ## auditing cifar100 in image classifier
-python3 ./experiments/classifier_cifar100.py --data_path <path where cifar-100-python.tar.gz is downloaded and unzipped> --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
+python3 ./experiments/classifier_cifar100.py --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
 ## auditing tinyimagenet in image classifier
-python3 ./experiments/classifier_tinyimagenet.py --data_path <path where tiny-imagenet-200.zip is downloaded and unzipped> --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
+python3 ./experiments/classifier_tinyimagenet.py --data_path './tiny-imagenet-200' --mark_budget 0.1 --radius 10 --K 16 --p 0.05 --num_experiments 20
 
 
 # To reproduce results in table 6: Results on auditing data in visual encoder trained by SimCLR

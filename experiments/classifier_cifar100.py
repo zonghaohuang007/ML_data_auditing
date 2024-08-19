@@ -349,7 +349,7 @@ def get_parser():
 
     # Files and folders
     parser.add_argument('--name', default='', type=str, help='Name tag for the result table and possibly for export folders.')
-    parser.add_argument('--data_path', default='', type=str)
+    parser.add_argument('--data_path', default='./', type=str)
     parser.add_argument('--img_path', type=str, default='./experiments/data/cifar100/train/')
     parser.add_argument('--published_path', type=str, default='./experiments/data/cifar100/')
     parser.add_argument('--unpublished_path', type=str, default='./experiments/data/cifar100/')

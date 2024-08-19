@@ -23,29 +23,28 @@ pip install git+https://github.com/openai/CLIP.git
 ```
 
 
-## To download CIFAR10, CIFAR100, TinyImageNet datasets
+## To download and unzip TinyImageNet datasets
 
 ```
 wget http://cs231n.stanford.edu/tiny-imagenet-200.zip
-wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
-wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz 
+unzip tiny-imagenet-200.zip
 ```
 
 ## To prepare raw CIFAR10, CIFAR100, TinyImageNet
 
 Export CIFAR10 as a dataset dir in './experiments/data/cifar10':
 ```
-python3 ./experiments/export_raw_data.py --dataset 'CIFAR10' --data_path <path where cifar-10-python.tar.gz is downloaded and unzipped> --saved_path './experiments/data/cifar10'
+python3 ./experiments/export_raw_data.py --dataset 'CIFAR10' --saved_path './experiments/data/cifar10'
 ```
 
 Export CIFAR100 as a dataset dir in './experiments/data/cifar100':
 ```
-python3 ./experiments/export_raw_data.py --dataset 'CIFAR100' --data_path <path where cifar-100-python.tar.gz is downloaded and unzipped> --saved_path './experiments/data/cifar100'
+python3 ./experiments/export_raw_data.py --dataset 'CIFAR100' --saved_path './experiments/data/cifar100'
 ```
 
 Export TinyImageNet as a dataset dir in './experiments/data/tinyimagenet':
 ```
-python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <path where tiny-imagenet-200.zip is downloaded and unzipped> --saved_path './experiments/data/tinyimagenet'
+python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path './tiny-imagenet-200' --saved_path './experiments/data/tinyimagenet'
 ```
 
 ## To get access to Llama models
@@ -55,13 +54,13 @@ python3 ./experiments/export_raw_data.py --dataset 'TinyImageNet' --data_path <p
 3. create an access token (https://huggingface.co/settings/tokens);
 4. in your terminal, run `huggingface-cli login` and provide your access token.
 
-## To reproduce the main experimental results of our proposed framework in the paper:
-Please check the notes or comments in "./experiments/run.sh" for the information on the mapping between main results in the paper and the corresponding codes used to reproduce them. (In "./experiments/run.sh", it is needed to set the data path where the dataset is downloaded and unzipped)
+## To reproduce the main experimental results of our proposed framework in the paper
+Please check the notes or comments in "./experiments/run.sh" for the information on the mapping between main results in the paper and the corresponding codes used to reproduce them. 
 ```
 bash ./experiments/run.sh
 ```
 
-## To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool:
+## To apply the marking algorithm and detection algorithm of our auditing framework as a plug-in tool
 
 Mark your image (for marking other type of data, e.g., text, please contact the author for help):
 ```
