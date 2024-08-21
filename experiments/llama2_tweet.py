@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
     results = {}
     for i in range(4):
-        results[str(i)] = {'cost':0, 'detected':0, 'Q/M': 0, 'acc': 0}
+        results[str(i)] = {'cost':0, 'detected':0, 'Q/M': 0, 'test_acc': 0}
 
     loaded_data = load_dataset("tweet_eval", 'emoji')
 
