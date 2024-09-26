@@ -68,7 +68,7 @@ from data_marking import data_marking
 
 class Args:
     radius = 10 # epsilon: utility bound
-    mepoch = 90 # number of iteration to update the mark
+    mepochs = 90 # number of iteration to update the mark
     raw_image_path = <the path of raw image>
     published_path = <the path of saving your published image>
     unpublished_path = <the path of saving your unpublished image>
